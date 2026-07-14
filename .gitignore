@@ -1,0 +1,15 @@
+bin/
+obj/
+*.db
+*.db-shm
+*.db-wal
+node_modules/
+frontend/dist/
+frontend/playwright-report/
+frontend/test-results/
+frontend/*.js
+frontend/*.d.ts
+*.tsbuildinfo
+.terraform/
+*.tfstate*
+.DS_Store
