@@ -8,7 +8,7 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: '$HOME/.dotnet/dotnet run --project ../src/FireSystemEventMonitor.Api/FireSystemEventMonitor.Api.csproj',
+      command: '../scripts/run-api.sh',
       url: 'http://127.0.0.1:5080/health',
       reuseExistingServer: true,
       env: {
@@ -25,4 +25,3 @@ export default defineConfig({
     },
   ],
 })
-
