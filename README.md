@@ -140,7 +140,11 @@ terraform -chdir=infra fmt -check
 terraform -chdir=infra validate
 ```
 
-The current verified suite contains 8 backend tests, 2 React component tests, and 1 browser workflow test.
+The current verified suite contains 9 backend tests, 2 React component tests, and 1 browser workflow test.
+
+## Requirements and verification traceability
+
+The [requirements and verification traceability matrix](docs/requirements-traceability.md) links the system behavior described in this repository to implementation locations and automated test evidence. It is an engineering review artifact for this repository, not a medical-device QMS record, IEC 62304 evidence, regulatory submission, or clinical validation.
 
 ## Security notes
 
@@ -158,4 +162,3 @@ The current verified suite contains 8 backend tests, 2 React component tests, an
 - The Terraform definition validates locally but was not applied to an Azure subscription during this build.
 - The UI is an operations workbench, not a replacement for certified fire alarm control equipment.
 - Event delivery is synchronous. A larger system would place ingestion behind a durable broker and add idempotency keys.
-

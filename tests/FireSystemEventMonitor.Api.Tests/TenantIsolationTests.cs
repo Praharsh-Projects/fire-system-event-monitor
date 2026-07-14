@@ -15,6 +15,20 @@ public sealed class TenantIsolationTests(ApiFactory factory) : IClassFixture<Api
     }
 
     [Fact]
+    public async Task EventsWithInvalidPayloadAreRejected()
+    {
+        using var client = CreateTenantClient("alpha", "alpha-key");
+        var response = await client.PostAsJsonAsync("/api/events", new
+        {
+            deviceId = "x",
+            eventType = "Offline",
+            message = "x"
+        });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task IncidentsAreIsolatedByTenantAndCanBeAcknowledged()
     {
         using var alpha = CreateTenantClient("alpha", "alpha-key");
@@ -60,4 +74,3 @@ public sealed class TenantIsolationTests(ApiFactory factory) : IClassFixture<Api
         return client;
     }
 }
-
