@@ -1,0 +1,254 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Fire System Event Monitor",
+    "description": "Power Platform actions for reviewing and updating incidents in the Fire System Event Monitor API.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Praharsh Pulla",
+      "email": "praharshpulla@gmail.com"
+    }
+  },
+  "x-ms-connector-metadata": [
+    {
+      "propertyName": "Website",
+      "propertyValue": "https://github.com/Praharsh-Projects/fire-system-event-monitor"
+    },
+    {
+      "propertyName": "Categories",
+      "propertyValue": "Business Management"
+    }
+  ],
+  "host": "api.example.com",
+  "basePath": "/",
+  "schemes": [
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "X-Api-Key"
+    }
+  },
+  "security": [
+    {
+      "api_key": []
+    }
+  ],
+  "paths": {
+    "/api/incidents": {
+      "get": {
+        "summary": "List incidents",
+        "description": "Returns incidents for the tenant configured on the connector connection.",
+        "operationId": "GetIncidents",
+        "x-ms-visibility": "important",
+        "responses": {
+          "200": {
+            "description": "Incidents returned successfully.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Incident"
+              }
+            }
+          },
+          "401": {
+            "description": "The API key or tenant connection value is invalid."
+          },
+          "500": {
+            "description": "The request could not be completed."
+          }
+        }
+      }
+    },
+    "/api/events": {
+      "post": {
+        "summary": "Record a fire-system event",
+        "description": "Validates an event and opens, updates, or resolves the matching tenant incident.",
+        "operationId": "RecordEvent",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "x-ms-summary": "Event",
+            "schema": {
+              "$ref": "#/definitions/CreateFireEventRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Event recorded successfully.",
+            "schema": {
+              "$ref": "#/definitions/EventResult"
+            }
+          },
+          "400": {
+            "description": "The event payload is invalid."
+          },
+          "401": {
+            "description": "The API key or tenant connection value is invalid."
+          },
+          "500": {
+            "description": "The request could not be completed."
+          }
+        }
+      }
+    },
+    "/api/incidents/{id}/acknowledge": {
+      "post": {
+        "summary": "Acknowledge an incident",
+        "description": "Moves an open tenant incident to the acknowledged state.",
+        "operationId": "AcknowledgeIncident",
+        "x-ms-visibility": "important",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "uuid",
+            "description": "Incident identifier returned by List incidents.",
+            "x-ms-summary": "Incident ID",
+            "x-ms-url-encoding": "single"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incident acknowledged successfully.",
+            "schema": {
+              "$ref": "#/definitions/Incident"
+            }
+          },
+          "401": {
+            "description": "The API key or tenant connection value is invalid."
+          },
+          "404": {
+            "description": "The incident does not exist in the configured tenant."
+          },
+          "500": {
+            "description": "The request could not be completed."
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "CreateFireEventRequest": {
+      "type": "object",
+      "required": [
+        "deviceId",
+        "eventType",
+        "message"
+      ],
+      "properties": {
+        "deviceId": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 80,
+          "description": "Identifier of the device that produced the event."
+        },
+        "eventType": {
+          "type": "string",
+          "enum": [
+            "Alarm",
+            "Fault",
+            "Warning",
+            "Restored"
+          ],
+          "description": "Supported event classification."
+        },
+        "message": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 500,
+          "description": "Operator-facing event detail."
+        },
+        "occurredAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Optional UTC event timestamp. The API clock is used when omitted."
+        }
+      }
+    },
+    "Incident": {
+      "type": "object",
+      "required": [
+        "id",
+        "deviceId",
+        "status",
+        "severity",
+        "summary",
+        "openedAt",
+        "updatedAt",
+        "eventCount"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "deviceId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Open",
+            "Acknowledged",
+            "Resolved"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "Critical",
+            "High",
+            "Medium",
+            "Low"
+          ]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "openedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "eventCount": {
+          "type": "integer",
+          "format": "int32",
+          "minimum": 0
+        }
+      }
+    },
+    "EventResult": {
+      "type": "object",
+      "required": [
+        "eventId"
+      ],
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "incident": {
+          "$ref": "#/definitions/Incident"
+        }
+      }
+    }
+  }
+}

@@ -16,6 +16,7 @@ The system is a multi-tenant operations workbench that accepts fire-system event
 | FR-04 | One tenant cannot read or mutate another tenant's incident data. | `Infrastructure/FireMonitorDbContext.cs` applies global tenant query filters, assigns tenant IDs on inserts, and rejects cross-tenant updates. | `TenantIsolationTests.IncidentsAreIsolatedByTenantAndCanBeAcknowledged` creates data for one tenant and verifies the second tenant receives an empty list. | Verified through the HTTP integration path; this is not a formal penetration test. |
 | FR-05 | An operator can acknowledge an open incident. | `Services/IncidentService.cs` changes `Open` incidents to `Acknowledged`; `Program.cs` maps the acknowledgement endpoint; `frontend/src/App.tsx` exposes the operator action. | `TenantIsolationTests.IncidentsAreIsolatedByTenantAndCanBeAcknowledged` verifies the API state transition. `frontend/e2e/incident-workflow.spec.ts` verifies the UI workflow. | Verified through API integration and one browser workflow. |
 | FR-06 | The web interface can connect to a tenant workspace, show incidents, and reject missing credentials before connecting. | `frontend/src/App.tsx` stores the tenant session, fetches incidents, renders incident state, and validates missing credentials. | `frontend/src/App.test.tsx` verifies incident rendering and missing-credential feedback. | Verified as component behavior with mocked fetch responses. |
+| FR-07 | Power Apps and Power Automate makers can use a version-controlled connector contract for the incident API. | `power-platform/connector` defines three actions, secure API-key authentication, a dynamic host, and tenant-header policy. `power-platform/power-apps` and `power-platform/power-automate` document app and automation designs. | `scripts/validate_power_platform.py` validates artifacts against pinned Microsoft and local schemas. `PowerPlatformConnectorContractTests` checks action IDs, security, connection policies, secret boundaries, and flow references. | Source contracts are verified. Import, connection creation, live flow execution, and canvas-app deployment require a Power Platform development tenant and remain external gates. |
 
 ## Verification workflow
 
@@ -23,6 +24,9 @@ Run the checks from the repository root:
 
 ```bash
 dotnet test tests/FireSystemEventMonitor.Api.Tests/FireSystemEventMonitor.Api.Tests.csproj --configuration Release
+
+python -m pip install -r requirements-dev.txt
+python scripts/validate_power_platform.py
 
 cd frontend
 npm ci
@@ -32,7 +36,7 @@ npm run test:e2e
 npm run build
 ```
 
-The current suite contains 9 backend test cases, 2 React component tests, and 1 browser workflow test. GitHub Actions runs the same backend, component, production-build, and browser checks for pushes to `main` and pull requests.
+The current suite contains 12 backend test cases, 2 React component tests, and 1 browser workflow test. GitHub Actions runs the same Power Platform contract, backend, component, production-build, and browser checks for pushes to `main` and pull requests.
 
 ## Change-impact practice
 
@@ -42,4 +46,5 @@ When changing a behavior in the matrix, update the intended-behavior row, the im
 
 - The application is an operations workbench and is not certified fire alarm control equipment.
 - Infrastructure configuration is defined with Terraform and may be validated locally; it has not been applied to an Azure subscription for this repository.
+- Power Platform connector and workflow source contracts have not been imported into or executed in a live tenant.
 - The matrix records repository evidence only. It does not replace risk management, clinical evaluation, cybersecurity assessment, design controls, audits, or any medical-device quality process.

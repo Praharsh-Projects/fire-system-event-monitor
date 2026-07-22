@@ -10,22 +10,24 @@ A full-stack engineering workbench for ingesting fire-device events and managing
 - Requires `X-Tenant-Id` and `X-Api-Key` headers for application endpoints.
 - Applies EF Core global query filters and write guards so one tenant cannot read or mutate another tenant's records.
 - Uses SQLite for a zero-dependency local run and includes a compiled SQL Server provider and production configuration.
+- Provides a version-controlled Power Platform custom connector contract for Power Apps and Power Automate actions.
 
 ## Architecture
 
 ```text
-React + TypeScript UI
-        |
-        | tenant headers + JSON
-        v
-ASP.NET Core minimal API
-        |
-        +-- TenantResolutionMiddleware (credential validation)
-        +-- IncidentService (event and state-transition rules)
-        +-- FireMonitorDbContext (tenant filters and write guard)
-        |
-        v
-SQLite locally / SQL Server in production configuration
+React + TypeScript UI       Power Apps / Power Automate
+        |                       | versioned custom connector
+        +-----------+-----------+
+                    | tenant headers + JSON
+                    v
+           ASP.NET Core minimal API
+                    |
+                    +-- TenantResolutionMiddleware (credential validation)
+                    +-- IncidentService (event and state-transition rules)
+                    +-- FireMonitorDbContext (tenant filters and write guard)
+                    |
+                    v
+        SQLite locally / SQL Server in production configuration
 ```
 
 The API keeps HTTP, incident rules, security context, and persistence in separate modules. `TimeProvider` is injected so time-sensitive behavior can be made deterministic in tests. Terraform defines a Linux App Service and private-network SQL Server baseline with managed identity and Azure AD-only database administration.
@@ -38,6 +40,7 @@ The API keeps HTTP, incident rules, security context, and persistence in separat
 - **xUnit + WebApplicationFactory:** unit and HTTP integration tests, including tenant-isolation checks.
 - **Vitest + Testing Library:** component behavior tests.
 - **Playwright:** browser test of the real UI and API workflow.
+- **Power Platform:** custom connector metadata, Power Apps maker design, and a Power Automate triage-flow blueprint.
 - **GitHub Actions:** build, unit, integration, frontend, and browser checks on pushes and pull requests.
 - **Terraform:** validated Azure App Service and SQL Server infrastructure definition.
 
@@ -140,7 +143,28 @@ terraform -chdir=infra fmt -check
 terraform -chdir=infra validate
 ```
 
-The current verified suite contains 9 backend tests, 2 React component tests, and 1 browser workflow test.
+Power Platform contract validation:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python scripts/validate_power_platform.py
+```
+
+The current verified suite contains 12 backend tests, 2 React component tests, and 1 browser workflow test. The
+Power Platform validator checks the custom connector against Microsoft schemas pinned to a specific upstream commit
+and checks the structured Power Automate blueprint against its local schema.
+
+## Power Platform integration
+
+The [`power-platform`](power-platform) folder contains:
+
+- a Swagger 2.0 custom connector for listing incidents, recording events, and acknowledging incidents;
+- connection policies for a dynamic HTTPS host and tenant header, with the API key held as a secure connection value;
+- a Power Apps screen design with Power Fx examples; and
+- a non-importable Power Automate flow blueprint with explicit environment, connection-reference, DLP, and test gates.
+
+See the [Power Platform integration guide](docs/power-platform-integration.md). The repository validates source
+contracts only; it does not claim a tenant import, active cloud flow, deployed canvas app, or Azure deployment.
 
 ## Requirements and verification traceability
 
@@ -160,5 +184,7 @@ The [requirements and verification traceability matrix](docs/requirements-tracea
 - Header API keys keep this repository self-contained; a production service should use an identity provider, short-lived tokens, secret rotation, and audited authorization policies.
 - `EnsureCreated` simplifies local evaluation. Production delivery should use reviewed EF Core migrations.
 - The Terraform definition validates locally but was not applied to an Azure subscription during this build.
+- Power Platform assets were schema- and contract-validated but not imported into a tenant or exercised with a live
+  Power Apps or Power Automate connection.
 - The UI is an operations workbench, not a replacement for certified fire alarm control equipment.
 - Event delivery is synchronous. A larger system would place ingestion behind a durable broker and add idempotency keys.

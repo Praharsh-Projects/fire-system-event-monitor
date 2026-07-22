@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Praharsh-Projects/fire-system-event-monitor/schemas/flow-blueprint.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "name",
+    "description",
+    "trigger",
+    "steps",
+    "deploymentGates",
+    "importable"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "artifactType": {
+      "const": "power-automate-flow-blueprint"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "interval",
+        "frequency"
+      ],
+      "properties": {
+        "type": {
+          "const": "Recurrence"
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "frequency": {
+          "enum": [
+            "Minute",
+            "Hour",
+            "Day"
+          ]
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "type"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "type": {
+            "enum": [
+              "ConnectorAction",
+              "FilterArray",
+              "ApprovalOrNotification"
+            ]
+          },
+          "inputStep": {
+            "type": "string"
+          },
+          "connectorOperationId": {
+            "type": "string"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "condition": {
+            "type": "string"
+          },
+          "implementationRequired": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "deploymentGates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "importable": {
+      "const": false
+    }
+  }
+}

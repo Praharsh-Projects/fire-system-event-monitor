@@ -1,0 +1,48 @@
+{
+  "$schema": "./flow-blueprint.schema.json",
+  "schemaVersion": "1.0",
+  "artifactType": "power-automate-flow-blueprint",
+  "name": "Critical incident triage",
+  "description": "Solution-aware flow design for reviewing critical open incidents and recording an operator decision.",
+  "trigger": {
+    "type": "Recurrence",
+    "interval": 5,
+    "frequency": "Minute"
+  },
+  "steps": [
+    {
+      "id": "list_incidents",
+      "type": "ConnectorAction",
+      "connectorOperationId": "GetIncidents"
+    },
+    {
+      "id": "filter_critical_open",
+      "type": "FilterArray",
+      "inputStep": "list_incidents",
+      "conditions": [
+        "severity equals Critical",
+        "status equals Open"
+      ]
+    },
+    {
+      "id": "request_operator_decision",
+      "type": "ApprovalOrNotification",
+      "inputStep": "filter_critical_open",
+      "implementationRequired": true
+    },
+    {
+      "id": "acknowledge_approved_incident",
+      "type": "ConnectorAction",
+      "inputStep": "request_operator_decision",
+      "connectorOperationId": "AcknowledgeIncident",
+      "condition": "operator decision equals acknowledge"
+    }
+  ],
+  "deploymentGates": [
+    "Import the custom connector into a development Power Platform environment.",
+    "Create environment-specific connection references without committing secrets.",
+    "Select an approved notification or approval connector and apply DLP policy.",
+    "Exercise success, no-result, unauthorized, and downstream-failure paths before activation."
+  ],
+  "importable": false
+}

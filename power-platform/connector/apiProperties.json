@@ -1,0 +1,74 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/PowerPlatformConnectors/674654de54c58b80a0f577153236f6fea92edb9c/schemas/paconn-apiProperties.schema.json#",
+  "properties": {
+    "connectionParameters": {
+      "api_host": {
+        "type": "string",
+        "uiDefinition": {
+          "displayName": "API host",
+          "description": "HTTPS host name of the deployed Fire System Event Monitor API, without a scheme or path.",
+          "tooltip": "For example: fire-monitor.example.com",
+          "constraints": {
+            "tabIndex": 1,
+            "required": "true"
+          }
+        }
+      },
+      "tenant_id": {
+        "type": "string",
+        "uiDefinition": {
+          "displayName": "Tenant ID",
+          "description": "Tenant workspace identifier sent to the API in the X-Tenant-Id header.",
+          "tooltip": "Enter the tenant workspace configured by the API operator.",
+          "constraints": {
+            "tabIndex": 2,
+            "required": "true"
+          }
+        }
+      },
+      "api_key": {
+        "type": "securestring",
+        "uiDefinition": {
+          "displayName": "API key",
+          "description": "Tenant API key sent to the service in the X-Api-Key header.",
+          "tooltip": "Use a secret issued for the selected tenant.",
+          "constraints": {
+            "tabIndex": 3,
+            "clearText": false,
+            "required": "true"
+          }
+        }
+      }
+    },
+    "iconBrandColor": "#C62828",
+    "capabilities": [
+      "actions"
+    ],
+    "policyTemplateInstances": [
+      {
+        "templateId": "dynamichosturl",
+        "title": "Use the configured API host",
+        "parameters": {
+          "x-ms-apimTemplateParameter.urlTemplate": "https://@connectionParameters('api_host')"
+        }
+      },
+      {
+        "templateId": "setheader",
+        "title": "Set the tenant workspace header",
+        "parameters": {
+          "x-ms-apimTemplateParameter.name": "X-Tenant-Id",
+          "x-ms-apimTemplateParameter.value": "@connectionParameters('tenant_id')",
+          "x-ms-apimTemplateParameter.existsAction": "override",
+          "x-ms-apimTemplate-policySection": "Request",
+          "x-ms-apimTemplate-operationName": [
+            "GetIncidents",
+            "RecordEvent",
+            "AcknowledgeIncident"
+          ]
+        }
+      }
+    ],
+    "publisher": "Praharsh Pulla",
+    "stackOwner": "Fire System Event Monitor"
+  }
+}
