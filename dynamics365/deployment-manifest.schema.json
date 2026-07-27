@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/fire-system-event-monitor/dynamics365-deployment-manifest.schema.json",
+  "title": "Dynamics 365 CE extension deployment manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "artifactType",
+    "solution",
+    "pluginAssembly",
+    "steps",
+    "webResources",
+    "tenantStatus"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schemaVersion": {
+      "const": "1.0"
+    },
+    "artifactType": {
+      "const": "dynamics365-ce-deployment-manifest"
+    },
+    "solution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["uniqueName", "publisherPrefix"],
+      "properties": {
+        "uniqueName": {
+          "type": "string",
+          "pattern": "^[A-Za-z][A-Za-z0-9_]+$"
+        },
+        "publisherPrefix": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9]{1,7}$"
+        }
+      }
+    },
+    "pluginAssembly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "targetFramework", "signed", "typeName"],
+      "properties": {
+        "project": {
+          "type": "string",
+          "minLength": 1
+        },
+        "targetFramework": {
+          "const": "net462"
+        },
+        "signed": {
+          "const": true
+        },
+        "typeName": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "message",
+          "primaryEntity",
+          "stage",
+          "mode",
+          "rank"
+        ],
+        "properties": {
+          "message": {
+            "enum": ["Create", "Update"]
+          },
+          "primaryEntity": {
+            "const": "incident"
+          },
+          "stage": {
+            "const": "PreOperation"
+          },
+          "mode": {
+            "const": "Synchronous"
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "filteringAttributes": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "preImage": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["alias", "attributes"],
+            "properties": {
+              "alias": {
+                "const": "PreImage"
+              },
+              "attributes": {
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "webResources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "type", "source", "formHandlers"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "const": "JavaScript"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "formHandlers": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["event", "function", "passExecutionContext"],
+              "properties": {
+                "event": {
+                  "enum": ["OnLoad", "OnChange"]
+                },
+                "column": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "function": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "passExecutionContext": {
+                  "const": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "tenantStatus": {
+      "const": "not-imported"
+    }
+  }
+}

@@ -11,6 +11,7 @@ A full-stack engineering workbench for ingesting fire-device events and managing
 - Applies EF Core global query filters and write guards so one tenant cannot read or mutate another tenant's records.
 - Uses SQLite for a zero-dependency local run and includes a compiled SQL Server provider and production configuration.
 - Provides a version-controlled Power Platform custom connector contract for Power Apps and Power Automate actions.
+- Provides a signed Dynamics 365 CE/Dataverse plug-in and a model-driven app JavaScript web resource for high-priority Case follow-up.
 
 ## Architecture
 
@@ -28,6 +29,11 @@ React + TypeScript UI       Power Apps / Power Automate
                     |
                     v
         SQLite locally / SQL Server in production configuration
+
+Dynamics 365 CE Case form
+        |
+        +-- JavaScript web resource (formContext validation and guidance)
+        +-- .NET Framework 4.6.2 IPlugin (pre-operation follow-up rule)
 ```
 
 The API keeps HTTP, incident rules, security context, and persistence in separate modules. `TimeProvider` is injected so time-sensitive behavior can be made deterministic in tests. Terraform defines a Linux App Service and private-network SQL Server baseline with managed identity and Azure AD-only database administration.
@@ -41,6 +47,7 @@ The API keeps HTTP, incident rules, security context, and persistence in separat
 - **Vitest + Testing Library:** component behavior tests.
 - **Playwright:** browser test of the real UI and API workflow.
 - **Power Platform:** custom connector metadata, Power Apps maker design, and a Power Automate triage-flow blueprint.
+- **Dynamics 365 CE / Dataverse:** signed C# `IPlugin`, standard Case-table registration plan, JavaScript form events, and model-driven app release gates.
 - **GitHub Actions:** build, unit, integration, frontend, and browser checks on pushes and pull requests.
 - **Terraform:** validated Azure App Service and SQL Server infrastructure definition.
 
@@ -150,9 +157,19 @@ python -m pip install -r requirements-dev.txt
 python scripts/validate_power_platform.py
 ```
 
-The current verified suite contains 12 backend tests, 2 React component tests, and 1 browser workflow test. The
-Power Platform validator checks the custom connector against Microsoft schemas pinned to a specific upstream commit
-and checks the structured Power Automate blueprint against its local schema.
+Dynamics 365 CE extension checks:
+
+```bash
+dotnet build dynamics365/plugins/FireSystemEventMonitor.Dataverse.Plugin/FireSystemEventMonitor.Dataverse.Plugin.csproj --configuration Release
+npm ci --prefix dynamics365/webresources
+npm run check --prefix dynamics365/webresources
+npm test --prefix dynamics365/webresources
+```
+
+The current verified suite contains 12 backend tests, 2 React component tests, 1 browser workflow test, 9 Dataverse
+plug-in tests, and 7 model-driven app JavaScript tests. The Power Platform validator checks the custom connector
+against Microsoft schemas pinned to a specific upstream commit, checks the structured Power Automate blueprint
+against its local schema, and validates the Dynamics 365 CE deployment manifest and referenced source files.
 
 ## Power Platform integration
 
@@ -165,6 +182,19 @@ The [`power-platform`](power-platform) folder contains:
 
 See the [Power Platform integration guide](docs/power-platform-integration.md). The repository validates source
 contracts only; it does not claim a tenant import, active cloud flow, deployed canvas app, or Azure deployment.
+
+## Dynamics 365 CE extension
+
+The [`dynamics365`](dynamics365) folder contains:
+
+- a signed .NET Framework 4.6.2 plug-in that applies a deterministic follow-up rule to the standard Case table;
+- unit tests for create, update, pre-image, existing-deadline, priority, recursion, and failure paths;
+- a JavaScript web resource using `executionContext.getFormContext()` for Case form events;
+- Node tests covering high-priority, normal-priority, missing-value, missing-control, and event-handler behavior; and
+- a schema-validated deployment manifest recording plug-in steps, filtering columns, pre-image, web resource, and form handlers.
+
+The extension source and CI are reproducible, but no Dataverse tenant import, plug-in registration, model-driven app
+publication, customer deployment, or live Dynamics 365 CE execution is claimed.
 
 ## Requirements and verification traceability
 
@@ -186,5 +216,7 @@ The [requirements and verification traceability matrix](docs/requirements-tracea
 - The Terraform definition validates locally but was not applied to an Azure subscription during this build.
 - Power Platform assets were schema- and contract-validated but not imported into a tenant or exercised with a live
   Power Apps or Power Automate connection.
+- Dynamics 365 CE plug-in and JavaScript assets build and test in CI, but were not registered or executed in an
+  authenticated Dataverse environment; the deployment manifest is not an exported solution package.
 - The UI is an operations workbench, not a replacement for certified fire alarm control equipment.
 - Event delivery is synchronous. A larger system would place ingestion behind a durable broker and add idempotency keys.

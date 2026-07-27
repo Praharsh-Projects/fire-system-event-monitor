@@ -48,3 +48,37 @@ jobs:
       - name: Run browser workflow test
         working-directory: frontend
         run: npm run test:e2e
+
+  dynamics365-extensions:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dynamics365/webresources/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Validate Power Platform and Dynamics 365 contracts
+        run: |
+          python -m pip install -r requirements-dev.txt
+          python scripts/validate_power_platform.py
+      - name: Test Dataverse plug-in
+        run: dotnet test dynamics365/plugins/FireSystemEventMonitor.Dataverse.Plugin.Tests/FireSystemEventMonitor.Dataverse.Plugin.Tests.csproj --configuration Release
+      - name: Install JavaScript web-resource dependencies
+        working-directory: dynamics365/webresources
+        run: npm ci
+      - name: Check JavaScript web resource
+        working-directory: dynamics365/webresources
+        run: npm run check
+      - name: Test JavaScript web resource
+        working-directory: dynamics365/webresources
+        run: npm test
