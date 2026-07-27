@@ -68,3 +68,8 @@ tenant is still required to:
 6. export a managed solution for downstream environments.
 
 No live tenant, cloud flow, canvas-app deployment, Azure resource, client data, or production outcome is claimed.
+
+The related Dynamics 365 CE Case plug-in and model-driven app JavaScript extension are documented separately in
+[`dynamics365/README.md`](../dynamics365/README.md). They share the same source-control and tenant-boundary policy:
+build, test, and manifest evidence are repository-verifiable, while import, registration, publication, and live
+execution require an authenticated development environment.

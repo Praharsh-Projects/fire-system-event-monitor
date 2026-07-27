@@ -1,0 +1,63 @@
+{
+  "$schema": "./deployment-manifest.schema.json",
+  "schemaVersion": "1.0",
+  "artifactType": "dynamics365-ce-deployment-manifest",
+  "solution": {
+    "uniqueName": "FireSystemOperations",
+    "publisherPrefix": "fsm"
+  },
+  "pluginAssembly": {
+    "project": "dynamics365/plugins/FireSystemEventMonitor.Dataverse.Plugin/FireSystemEventMonitor.Dataverse.Plugin.csproj",
+    "targetFramework": "net462",
+    "signed": true,
+    "typeName": "FireSystemEventMonitor.Dataverse.Plugin.EnsureHighPriorityFollowUpPlugin"
+  },
+  "steps": [
+    {
+      "message": "Create",
+      "primaryEntity": "incident",
+      "stage": "PreOperation",
+      "mode": "Synchronous",
+      "rank": 1
+    },
+    {
+      "message": "Update",
+      "primaryEntity": "incident",
+      "stage": "PreOperation",
+      "mode": "Synchronous",
+      "rank": 1,
+      "filteringAttributes": [
+        "prioritycode",
+        "followupby"
+      ],
+      "preImage": {
+        "alias": "PreImage",
+        "attributes": [
+          "prioritycode",
+          "followupby"
+        ]
+      }
+    }
+  ],
+  "webResources": [
+    {
+      "name": "fsm_/scripts/incident-form.js",
+      "type": "JavaScript",
+      "source": "dynamics365/webresources/incident-form.js",
+      "formHandlers": [
+        {
+          "event": "OnLoad",
+          "function": "FireSystem.IncidentForm.onLoad",
+          "passExecutionContext": true
+        },
+        {
+          "event": "OnChange",
+          "column": "prioritycode",
+          "function": "FireSystem.IncidentForm.onPriorityChange",
+          "passExecutionContext": true
+        }
+      ]
+    }
+  ],
+  "tenantStatus": "not-imported"
+}
