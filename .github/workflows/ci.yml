@@ -42,6 +42,9 @@ jobs:
       - name: Build frontend
         working-directory: frontend
         run: npm run build
+      - name: Audit frontend dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=high
       - name: Install Playwright browser
         working-directory: frontend
         run: npx playwright install --with-deps chromium
