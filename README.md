@@ -132,6 +132,7 @@ cd frontend
 npm ci
 npm test
 npm run build
+npm audit --audit-level=high
 ```
 
 Browser workflow test:
